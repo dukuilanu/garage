@@ -92,6 +92,7 @@ class comm {
       Serial.println(failCount);
       delay(1000);
       if (failCount == 5) {
+        connected = 0;
         connect();
         failCount = 0;
         return 1;
@@ -133,6 +134,7 @@ class comm {
       Serial.println(failCount);
       delay(1000);
       if (failCount == 5) {
+        connected = 0;
         connect();
         failCount = 0;
         return 1;
