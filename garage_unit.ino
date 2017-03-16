@@ -39,12 +39,13 @@ class comm {
         };
         delay(500);
         Serial.print(".");
-        };
-        Serial.println("");
-        Serial.println("WiFi connected");  
-        Serial.println("IP address: ");
-        Serial.println(WiFi.localIP());
-        connected = 1;
+      };
+      
+      Serial.println("");
+      Serial.println("WiFi connected");  
+      Serial.println("IP address: ");
+      Serial.println(WiFi.localIP());
+      connected = 1;
     } else {
       if (connected == 0) {
         unsigned long connectMillis = millis();
@@ -82,8 +83,8 @@ class comm {
         doorState = 0;
       };
     }
-      else {
-        doorState = 0;
+    else {
+      doorState = 0;
     };
     
     WiFiClient client;
@@ -114,14 +115,15 @@ class comm {
                  
     //delay(1000);
     bool available = 0;
+    unsigned int timer = millis();
     while(available == 0) {
-      if(client.available()) {
+      if(client.available() || (millis() >= timer + 15000)) {
         available = 1;
         while(client.available()){
           failCount = 0;
           String line = client.readStringUntil('\r');
-          //Serial.println(line);
-          //Serial.println();
+          Serial.println(line);
+          Serial.println();
         };
       };
     };
@@ -150,8 +152,9 @@ class comm {
              "Connection: close\r\n\r\n");
 
     bool available = 0;
+    unsigned int timer = millis();
     while(available == 0) {
-      if(client.available()) {
+      if(client.available() || (millis() >= timer + 15000)) {
         available = 1;
         while(client.available()){
           failCount = 0;
