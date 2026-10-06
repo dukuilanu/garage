@@ -1,6 +1,5 @@
 #include <RadioLib.h>
 #include "Arduino.h"
-#include "Ultrasonic.h"
 
 #define I2C_SDA                     21
 #define I2C_SCL                     22
@@ -20,8 +19,8 @@
 #define LED_ON                      HIGH
 #define ADC_PIN                     35
 #define BOARD_VARIANT_NAME          "T3 LoRa32" //https://lilygo.cc/products/lora3
-#define CONFIG_RADIO_FREQ           433.0
-#define CONFIG_RADIO_OUTPUT_POWER   17
+#define CONFIG_RADIO_FREQ           433.5
+#define CONFIG_RADIO_OUTPUT_POWER   2
 //doorState: 1 == closed
 bool doorState = 1;
 bool lastState = 1;
@@ -30,9 +29,8 @@ volatile bool operationDone = false;
 int transmissionState = RADIOLIB_ERR_NONE;
 
 //trigger, echo
-Ultrasonic ultrasonic(12,13);
-int  rf = ultrasonic.Ranging(0);
-SX1276 radio = new Module(RADIO_CS_PIN, RADIO_DIO0_PIN, RADIO_RST_PIN, RADIO_DIO1_PIN);
+int distv = 100;
+SX1278 radio = new Module(RADIO_CS_PIN, RADIO_DIO0_PIN, RADIO_RST_PIN, RADIO_DIO1_PIN);
 
 void bounce(void)
 {
@@ -58,33 +56,20 @@ void setup() {
       }
   }
   radio.setOutputPower(CONFIG_RADIO_OUTPUT_POWER);
+  radio.setBandwidth(7.8);
   radio.setPacketReceivedAction(bounce);
-
-  if (rf <= 50) {
-    if (rf <= 8) {
-      doorState = 1;
-    }
-    else {
-      doorState = 0;
-    };
-  }
-  else {
-    doorState = 0;
-  };
-
-  lastState = doorState;
 
 }
 
 void loop() {
-  rf = ultrasonic.Ranging(0);
-  Serial.println(rf);
+  distv = analogRead(34);
+  Serial.println(distv);
 
-  if (rf <= 14) {
-    doorState = 1;
+  if (distv >= 1800) {
+    doorState = 0;
   }
   else {
-    doorState = 0;
+    doorState = 1;
   };
   //test code
   //lastState = 0;

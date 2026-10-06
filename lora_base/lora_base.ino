@@ -21,7 +21,7 @@
 #define LED_ON                      HIGH
 #define ADC_PIN                     35
 #define BOARD_VARIANT_NAME          "T3 LoRa32" //https://lilygo.cc/products/lora3
-#define CONFIG_RADIO_FREQ           433.0
+#define CONFIG_RADIO_FREQ           433.5
 #define CONFIG_RADIO_OUTPUT_POWER   17
 bool doorState = 0;
 bool lastState = 0;
@@ -100,6 +100,7 @@ class comm {
   };
 
   bool mqttconnect() {
+    client.disconnect();
     while (!client.connected()) {
       Serial.print("Attempting MQTT connection...");
       client.setServer(host, mqtt_port);
@@ -119,10 +120,7 @@ class comm {
   };
   
   bool send() {
-    if (!client.connected()) {
-      Serial.println("Send loop needs to reconnect MQTT");
-      mqttconnect();
-    };
+    mqttconnect();
 
     char* mqtt_topic = "outside/sensor/gdoor";
     char payloadStr[1];
@@ -134,7 +132,9 @@ class comm {
     if (client.publish(mqtt_topic, payloadStr)) {
       Serial.println("Publish successful!");
     } else {
-      Serial.println("Publish failed.");
+      Serial.print("Publish failed:");
+      Serial.println(client.state());
+      return 1;
     };
 
     return 0;
@@ -170,6 +170,7 @@ void setup() {
       }
   }
   radio.setOutputPower(CONFIG_RADIO_OUTPUT_POWER);
+  radio.setBandwidth(7.8);
   radio.setPacketReceivedAction(bounce);
   radio.startReceive();
 
@@ -189,33 +190,33 @@ void loop() {
 
     if (state == RADIOLIB_ERR_NONE) {
       // packet was successfully received
-        Serial.println(F("[SX1276] Received packet!"));
+        Serial.println("[SX1276] Received packet!");
 
         // print data of the packet
-        Serial.print(F("[SX1276] Data:\t\t"));
+        Serial.print("[SX1276] Data:\t\t");
         Serial.println(str);
 
         // print RSSI (Received Signal Strength Indicator)
-        Serial.print(F("[SX1276] RSSI:\t\t"));
+        Serial.print("[SX1276] RSSI:\t\t");
         Serial.print(radio.getRSSI());
-        Serial.println(F(" dBm"));
+        Serial.println(" dBm");
 
         // print SNR (Signal-to-Noise Ratio)
-        Serial.print(F("[SX1276] SNR:\t\t"));
+        Serial.print("[SX1276] SNR:\t\t");
         Serial.print(radio.getSNR());
-        Serial.println(F(" dB"));
+        Serial.println(" dB");
 
         if (str == "GDOOR STATE 1 DE N1XQR K"){
           doorState = 1;
           lastState = doorState;
-          Serial.println("doorState changed to " + doorState);
+          Serial.println("doorState changed to 1");
           cc.send();
         };
 
           if (str == "GDOOR STATE 0 DE N1XQR K"){
           doorState = 0;
           lastState = doorState;
-          Serial.println("doorState changed to " + doorState);
+          Serial.println("doorState changed to 0");
           cc.send();
         };
 
